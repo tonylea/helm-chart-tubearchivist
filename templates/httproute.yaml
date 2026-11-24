@@ -1,4 +1,7 @@
 {{- if .Values.httpRoute.enabled }}
+{{- if not .Values.httpRoute.parentRefs }}
+{{- fail "httpRoute.parentRefs is required when httpRoute.enabled is set" }}
+{{- end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -8,7 +11,7 @@ metadata:
     app.kubernetes.io/component: tubearchivist
 spec:
   parentRefs:
-    {{- required "httpRoute.parentRefs is required when httpRoute.enabled is set" .Values.httpRoute.parentRefs | toYaml | nindent 4 }}
+    {{- toYaml .Values.httpRoute.parentRefs | nindent 4 }}
   hostnames:
     - {{ required "host is required" .Values.host }}
   rules:
