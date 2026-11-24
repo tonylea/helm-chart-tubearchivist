@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.0.0](https://github.com/tonylea/helm-chart-tubearchivist/compare/v1.0.0...v2.0.0) (2026-11-24)
+
+### ⚠ BREAKING CHANGES
+
+* the chart no longer creates the download claim. Set
+  `persistence.download.existingClaim`; `persistence.download.storageClass`
+  is gone. The cache claim's size is now `persistence.cache.size`.
+* the chart no longer sets requests. Set `resources` and
+  `redis.resources`; the README suggests starting figures.
+
+### Features
+
+* take requests from values instead of the templates ([3bf54d0](https://github.com/tonylea/helm-chart-tubearchivist/commit/3bf54d0642a2082534118a460be259bbabb2b716))
+* take the download claim and cache size from values ([ad3c4e8](https://github.com/tonylea/helm-chart-tubearchivist/commit/ad3c4e8520ab72f0c78e6d82a91e0674d630dfd7))
+
 ## 1.0.0 (2026-11-24)
 
 ### Features
