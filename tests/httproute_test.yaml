@@ -1,0 +1,38 @@
+suite: httproute
+templates:
+  - httproute.yaml
+values:
+  - ../ci/test-values.yaml
+tests:
+  - it: renders nothing by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: routes host to the service when enabled
+    release:
+      name: media
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: internal
+          namespace: ingress
+    asserts:
+      - equal:
+          path: spec.hostnames
+          value: [tubearchivist.example.com]
+      - equal:
+          path: spec.parentRefs[0].name
+          value: internal
+      - equal:
+          path: spec.rules[0].backendRefs[0]
+          value:
+            name: media-tubearchivist
+            port: 8000
+
+  - it: fails when enabled without parentRefs
+    set:
+      httpRoute.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: httpRoute.parentRefs is required when httpRoute.enabled is set

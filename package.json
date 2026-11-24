@@ -1,11 +1,11 @@
 {
-  "name": "helm-chart-app-name",
+  "name": "helm-chart-tubearchivist",
   "version": "1.0.0",
-  "description": "Deploys App Name, [what App Name does, in a few words]",
+  "description": "Deploys Tube Archivist, which archives YouTube channels and playlists and indexes them in Elasticsearch",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tonylea/helm-chart-app-name.git"
+    "url": "git+https://github.com/tonylea/helm-chart-tubearchivist.git"
   },
   "license": "MIT",
   "scripts": {

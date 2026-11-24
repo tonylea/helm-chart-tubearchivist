@@ -1,0 +1,10 @@
+apiVersion: v2
+name: tubearchivist
+description: Deploys Tube Archivist, which archives YouTube channels and playlists and indexes them in Elasticsearch
+type: application
+version: 1.0.0
+appVersion: v0.6.0
+home: https://www.tubearchivist.com
+sources:
+  - https://github.com/tonylea/helm-chart-tubearchivist
+  - https://github.com/tubearchivist/tubearchivist

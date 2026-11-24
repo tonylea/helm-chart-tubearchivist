@@ -1,0 +1,8 @@
+host: tubearchivist.example.com
+existingSecret: tubearchivist
+elasticsearch:
+  url: http://elasticsearch:9200
+  user: elastic
+  snapshotDir: /usr/share/elasticsearch/data/snapshot
+media:
+  existingClaim: media

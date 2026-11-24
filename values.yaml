@@ -1,0 +1,26 @@
+host: ""
+timezone: UTC
+existingSecret: ""
+
+elasticsearch:
+  url: ""
+  user: tubearchivist
+  snapshotDir: ""
+
+media:
+  existingClaim: ""
+
+persistence:
+  cache:
+    storageClass: ""
+  download:
+    storageClass: ""
+
+redis:
+  persistence:
+    size: 128Mi
+    storageClass: ""
+
+httpRoute:
+  enabled: false
+  parentRefs: []
