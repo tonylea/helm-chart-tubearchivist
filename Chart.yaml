@@ -2,7 +2,7 @@ apiVersion: v2
 name: tubearchivist
 description: Deploys Tube Archivist, which archives YouTube channels and playlists and indexes them in Elasticsearch
 type: application
-version: 2.0.0
+version: 2.1.0
 appVersion: v0.6.0
 home: https://www.tubearchivist.com
 sources:
