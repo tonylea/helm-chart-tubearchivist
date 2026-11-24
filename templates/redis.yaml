@@ -42,10 +42,10 @@ spec:
               command: [redis-cli, ping]
             periodSeconds: 30
             timeoutSeconds: 5
+          {{- with .Values.redis.resources }}
           resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

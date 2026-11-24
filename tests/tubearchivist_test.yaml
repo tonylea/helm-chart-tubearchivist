@@ -43,7 +43,7 @@ tests:
             name: REDIS_CON
             value: redis://media-tubearchivist-redis:6379
 
-  - it: mounts the media claim, the cache and the download scratch
+  - it: mounts the media and download claims
     asserts:
       - contains:
           path: spec.template.spec.volumes
@@ -52,12 +52,28 @@ tests:
             persistentVolumeClaim:
               claimName: media
       - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: download
+            persistentVolumeClaim:
+              claimName: download
+      - contains:
           path: spec.template.spec.containers[0].volumeMounts
           content:
             name: download
             mountPath: /cache/download
 
-  - it: sets requests and no limits
+  - it: sets no resources by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+
+  - it: sets resources when given
+    set:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 768Mi
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources
@@ -79,3 +95,10 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: media.existingClaim is required
+
+  - it: fails without the download claim
+    set:
+      persistence.download.existingClaim: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: persistence.download.existingClaim is required

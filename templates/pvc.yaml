@@ -1,6 +1,5 @@
 {{- $volumes := list
-  (dict "suffix" "cache" "size" "5Gi" "storageClass" .Values.persistence.cache.storageClass)
-  (dict "suffix" "download" "size" "20Gi" "storageClass" .Values.persistence.download.storageClass)
+  (dict "suffix" "cache" "size" .Values.persistence.cache.size "storageClass" .Values.persistence.cache.storageClass)
   (dict "suffix" "redis" "size" .Values.redis.persistence.size "storageClass" .Values.redis.persistence.storageClass) }}
 {{- range $volumes }}
 ---

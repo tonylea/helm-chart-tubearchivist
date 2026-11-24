@@ -6,44 +6,44 @@ values:
 release:
   name: media
 tests:
-  - it: creates the cache, download and Redis claims at their sizes
+  - it: creates the cache and Redis claims at their default sizes
     asserts:
       - hasDocuments:
-          count: 3
+          count: 2
       - equal:
           path: spec.resources.requests.storage
           value: 5Gi
         documentIndex: 0
       - equal:
           path: spec.resources.requests.storage
-          value: 20Gi
-        documentIndex: 1
-      - equal:
-          path: spec.resources.requests.storage
           value: 128Mi
-        documentIndex: 2
+        documentIndex: 1
 
   - it: leaves the storage class to the cluster default when unset
     asserts:
       - notExists:
           path: spec.storageClassName
 
-  - it: sets each storage class and the Redis size when given
+  - it: sets each size and storage class when given
     set:
+      persistence.cache.size: 10Gi
       persistence.cache.storageClass: fast
-      persistence.download.storageClass: scratch
       redis.persistence.size: 256Mi
       redis.persistence.storageClass: fast
     asserts:
+      - equal:
+          path: spec.resources.requests.storage
+          value: 10Gi
+        documentIndex: 0
       - equal:
           path: spec.storageClassName
           value: fast
         documentIndex: 0
       - equal:
-          path: spec.storageClassName
-          value: scratch
-        documentIndex: 1
-      - equal:
           path: spec.resources.requests.storage
           value: 256Mi
-        documentIndex: 2
+        documentIndex: 1
+      - equal:
+          path: spec.storageClassName
+          value: fast
+        documentIndex: 1

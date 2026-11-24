@@ -4,7 +4,7 @@
 
 Deploys [Tube Archivist](https://www.tubearchivist.com) from its official image, [`bbilly1/tubearchivist`](https://github.com/tubearchivist/tubearchivist), published by the project for amd64 and arm64 in one tag.
 
-The chart is opinionated: it fixes the image, the user, the requests and most of the settings, and leaves values only for what changes with where it's installed.
+The chart is opinionated: it fixes the image, the user and most of the settings, and leaves values only for what changes with where it's installed.
 Tube Archivist runs as one replica, replaced with `Recreate` rather than rolled, because it keeps a SQLite database in `/cache` and runs its own task scheduler, so two pods would clash.
 The chart also runs Tube Archivist's own Redis, which holds its task queue and is not shared with anything else.
 Its video index lives in an Elasticsearch that the chart does not install.
@@ -12,21 +12,24 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
 
 ## Values
 
-| Value                               | Default                                                                                                                                                                                                                 |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `host`                              | none; required. The hostname Tube Archivist is reached at, without a scheme. `TA_HOST` is set to `https://<host>`, which must match the address typed in the browser, or requests fail with a 400 or a logout redirect. |
-| `timezone`                          | `UTC`. An IANA zone name, used for the schedules.                                                                                                                                                                       |
-| `existingSecret`                    | none; required. See [Requirements](#requirements).                                                                                                                                                                      |
-| `elasticsearch.url`                 | none; required. With scheme and port, such as `https://elasticsearch:9200`.                                                                                                                                             |
-| `elasticsearch.user`                | `tubearchivist`                                                                                                                                                                                                         |
-| `elasticsearch.snapshotDir`         | none; required. Must equal Elasticsearch's `path.repo`.                                                                                                                                                                 |
-| `media.existingClaim`               | none; required. The claim mounted at `/youtube`.                                                                                                                                                                        |
-| `persistence.cache.storageClass`    | none; the cluster's default class. The chart creates a 5Gi claim.                                                                                                                                                       |
-| `persistence.download.storageClass` | none; the cluster's default class. The chart creates a 20Gi claim.                                                                                                                                                      |
-| `redis.persistence.size`            | `128Mi`, the recommended size. Redis holds only task messages, task status and locks, so even a large backlog is a few MB.                                                                                              |
-| `redis.persistence.storageClass`    | none; the cluster's default class.                                                                                                                                                                                      |
-| `httpRoute.enabled`                 | `false`                                                                                                                                                                                                                 |
-| `httpRoute.parentRefs`              | `[]`; required when `httpRoute.enabled` is set.                                                                                                                                                                         |
+| Value                                | Default                                                                                                                                                                                                                 |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `host`                               | none; required. The hostname Tube Archivist is reached at, without a scheme. `TA_HOST` is set to `https://<host>`, which must match the address typed in the browser, or requests fail with a 400 or a logout redirect. |
+| `timezone`                           | `UTC`. An IANA zone name, used for the schedules.                                                                                                                                                                       |
+| `existingSecret`                     | none; required. See [Requirements](#requirements).                                                                                                                                                                      |
+| `elasticsearch.url`                  | none; required. With scheme and port, such as `https://elasticsearch:9200`.                                                                                                                                             |
+| `elasticsearch.user`                 | `tubearchivist`                                                                                                                                                                                                         |
+| `elasticsearch.snapshotDir`          | none; required. Must equal Elasticsearch's `path.repo`.                                                                                                                                                                 |
+| `media.existingClaim`                | none; required. The claim mounted at `/youtube`.                                                                                                                                                                        |
+| `resources`                          | none. Requests of 50m CPU and 768Mi memory, with no limits, are a starting point until usage is measured.                                                                                                               |
+| `persistence.cache.size`             | `5Gi`. It grows with the library, since it holds a thumbnail for every video and the art for every channel.                                                                                                             |
+| `persistence.cache.storageClass`     | none; the cluster's default class.                                                                                                                                                                                      |
+| `persistence.download.existingClaim` | none; required. The claim mounted at `/cache/download`.                                                                                                                                                                 |
+| `redis.resources`                    | none. Requests of 10m CPU and 64Mi memory, with no limits, are a starting point until usage is measured.                                                                                                                |
+| `redis.persistence.size`             | `128Mi`, the recommended size. Redis holds only task messages, task status and locks, so even a large backlog is a few MB.                                                                                              |
+| `redis.persistence.storageClass`     | none; the cluster's default class.                                                                                                                                                                                      |
+| `httpRoute.enabled`                  | `false`                                                                                                                                                                                                                 |
+| `httpRoute.parentRefs`               | `[]`; required when `httpRoute.enabled` is set.                                                                                                                                                                         |
 
 ## Fixed settings
 
@@ -37,8 +40,6 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
   The pod needs internet access for it, as it does for YouTube.
 - **`REDIS_CON` points at the chart's own Redis.**
 - **Both pods run as non-root users**: Tube Archivist as `1000:1000`, Redis as `999:999`.
-- **Requests, and no limits**: Tube Archivist 50m CPU and 768Mi memory, Redis 10m CPU and 64Mi memory.
-  Limits are left out until they can be set from measured usage.
 
 ## Requirements
 
@@ -83,12 +84,12 @@ tubearchivist:
 
 ### Storage
 
-| Mount             | Claim                  | Requirements                                                                                                                                                                                                                        |
-| ----------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/youtube`        | `media.existingClaim`  | The finished videos. Tube Archivist creates a folder per channel ID, and creates, renames and deletes files in it, so the pod's user (or the user the share maps it to) must be able to do all of those. Its size is the library's. |
-| `/cache`          | The chart's `cache`    | The SQLite database, artwork and yt-dlp's cache. SQLite needs working file locks, so this is block or local storage, never NFS or SMB. It holds state, so it needs to persist and is worth keeping redundant.                       |
-| `/cache/download` | The chart's `download` | Downloads in progress, copied to `/youtube` when each finishes. It holds the largest single video. It needs no redundancy and needn't survive a restart: a lost partial download is fetched again.                                  |
-| `/data` (Redis)   | The chart's `redis`    | Redis's snapshots. Block or local storage.                                                                                                                                                                                          |
+| Mount             | Claim                                | Requirements                                                                                                                                                                                                                        |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/youtube`        | `media.existingClaim`                | The finished videos. Tube Archivist creates a folder per channel ID, and creates, renames and deletes files in it, so the pod's user (or the user the share maps it to) must be able to do all of those. Its size is the library's. |
+| `/cache`          | The chart's `cache`                  | The SQLite database, artwork and yt-dlp's cache. SQLite needs working file locks, so this is block or local storage, never NFS or SMB. It holds state, so it needs to persist and is worth keeping redundant.                       |
+| `/cache/download` | `persistence.download.existingClaim` | Downloads in progress, copied to `/youtube` when each finishes. It must hold the largest single video. It needs no redundancy and needn't survive a restart: a lost partial download is fetched again.                              |
+| `/data` (Redis)   | The chart's `redis`                  | Redis's snapshots. Block or local storage.                                                                                                                                                                                          |
 
 ### Gateway API
 
@@ -110,6 +111,9 @@ elasticsearch:
   snapshotDir: /usr/share/elasticsearch/data/snapshot
 media:
   existingClaim: youtube
+persistence:
+  download:
+    existingClaim: youtube-downloads
 httpRoute:
   enabled: true
   parentRefs:
@@ -124,7 +128,7 @@ Pull requests run:
 - `helm lint --strict`, and the rendered chart checked by kubeconform against Kubernetes 1.37.
 - helm-unittest's tests in `tests/`.
 - An install with chart-testing in a kind cluster, using `ci/test-values.yaml`.
-  `ci/kind` first sets up what it needs: a single-node Elasticsearch 9.5.5 with `path.repo` set, the Secret, and a claim for `/youtube`.
+  `ci/kind` first sets up what it needs: a single-node Elasticsearch 9.5.5 with `path.repo` set, the Secret, and claims for `/youtube` and `/cache/download`.
 
 Commits follow Conventional Commits.
 Releases are versioned and tagged automatically from `main`, and published to the Helm repository on this repo's GitHub Pages.

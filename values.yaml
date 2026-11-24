@@ -10,13 +10,17 @@ elasticsearch:
 media:
   existingClaim: ""
 
+resources: {}
+
 persistence:
   cache:
+    size: 5Gi
     storageClass: ""
   download:
-    storageClass: ""
+    existingClaim: ""
 
 redis:
+  resources: {}
   persistence:
     size: 128Mi
     storageClass: ""

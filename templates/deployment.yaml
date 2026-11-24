@@ -91,10 +91,10 @@ spec:
                   value: localhost
             periodSeconds: 30
             timeoutSeconds: 5
+          {{- with .Values.resources }}
           resources:
-            requests:
-              cpu: 50m
-              memory: 768Mi
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -116,4 +116,4 @@ spec:
             claimName: {{ include "tubearchivist.fullname" . }}-cache
         - name: download
           persistentVolumeClaim:
-            claimName: {{ include "tubearchivist.fullname" . }}-download
+            claimName: {{ required "persistence.download.existingClaim is required" .Values.persistence.download.existingClaim }}

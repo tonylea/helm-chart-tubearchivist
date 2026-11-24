@@ -6,3 +6,6 @@ elasticsearch:
   snapshotDir: /usr/share/elasticsearch/data/snapshot
 media:
   existingClaim: media
+persistence:
+  download:
+    existingClaim: download
