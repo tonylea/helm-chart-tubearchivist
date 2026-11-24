@@ -1,0 +1,81 @@
+suite: tubearchivist
+templates:
+  - deployment.yaml
+values:
+  - ../ci/test-values.yaml
+tests:
+  - it: runs the pinned image once, replaced rather than rolled
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: bbilly1/tubearchivist:v0.6.0
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+
+  - it: runs as a non-root user
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+
+  - it: builds TA_HOST from host with https
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TA_HOST
+            value: https://tubearchivist.example.com
+
+  - it: points REDIS_CON at the chart's own Redis
+    release:
+      name: media
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_CON
+            value: redis://media-tubearchivist-redis:6379
+
+  - it: mounts the media claim, the cache and the download scratch
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: media
+            persistentVolumeClaim:
+              claimName: media
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: download
+            mountPath: /cache/download
+
+  - it: sets requests and no limits
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 50m
+              memory: 768Mi
+
+  - it: fails without host
+    set:
+      host: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: host is required
+
+  - it: fails without the media claim
+    set:
+      media.existingClaim: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: media.existingClaim is required

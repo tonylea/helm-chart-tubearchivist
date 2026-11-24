@@ -18,7 +18,7 @@ Say what you expected, what happened, and how to reproduce it.
 
 ## Commit messages
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `fix: pass the time zone to App Name`.
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `fix: pass the time zone to Tube Archivist`.
 The type says what changed:
 
 - `feat`: new behaviour

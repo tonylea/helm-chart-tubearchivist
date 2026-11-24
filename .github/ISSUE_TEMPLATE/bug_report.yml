@@ -32,5 +32,5 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Relevant output from the pod's app-name container. Remove anything secret first, such as API keys and passwords.
+      description: Relevant output from the pod's tubearchivist container. Remove anything secret first, such as API keys and passwords.
       render: text
