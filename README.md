@@ -7,6 +7,7 @@ Deploys [Tube Archivist](https://www.tubearchivist.com) from its official image,
 The chart is opinionated: it fixes the image, the user and most of the settings, and leaves values only for what changes with where it's installed.
 Tube Archivist runs as one replica, replaced with `Recreate` rather than rolled, because it keeps a SQLite database in `/cache` and runs its own task scheduler, so two pods would clash.
 The chart also runs Tube Archivist's own Redis, which holds its task queue and is not shared with anything else.
+Redis serves no Prometheus metrics itself, so [`redis_exporter`](https://github.com/oliver006/redis_exporter) runs beside it in the same pod and serves them on port 9121.
 Its video index lives in an Elasticsearch that the chart does not install.
 The project calls its arm64 builds "essentially untested"; if they misbehave, run the pod on an amd64 node.
 
@@ -28,6 +29,10 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
 | `redis.resources`                    | none. Requests of 10m CPU and 64Mi memory, with no limits, are a starting point until usage is measured.                                                                                                                |
 | `redis.persistence.size`             | `128Mi`, the recommended size. Redis holds only task messages, task status and locks, so even a large backlog is a few MB.                                                                                              |
 | `redis.persistence.storageClass`     | none; the cluster's default class.                                                                                                                                                                                      |
+| `redis.exporter.resources`           | none. Requests of 10m CPU and 32Mi memory, with no limits, are a starting point until usage is measured.                                                                                                                |
+| `redis.serviceMonitor.enabled`       | `false`. A ServiceMonitor for the exporter.                                                                                                                                                                             |
+| `redis.serviceMonitor.interval`      | `30s`                                                                                                                                                                                                                   |
+| `redis.dashboard.enabled`            | `false`. The exporter's own Grafana dashboard, as a ConfigMap labelled `grafana_dashboard: "1"`.                                                                                                                        |
 | `httpRoute.enabled`                  | `false`                                                                                                                                                                                                                 |
 | `httpRoute.parentRefs`               | `[]`; required when `httpRoute.enabled` is set.                                                                                                                                                                         |
 
@@ -39,7 +44,7 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
   YouTube's changes often break yt-dlp, and Tube Archivist's releases come months apart, so each start installs the latest yt-dlp release from PyPI.
   The pod needs internet access for it, as it does for YouTube.
 - **`REDIS_CON` points at the chart's own Redis.**
-- **Both pods run as non-root users**: Tube Archivist as `1000:1000`, Redis as `999:999`.
+- **Both pods run as non-root users**: Tube Archivist as `1000:1000`, Redis and its exporter as `999:999`.
 
 ## Requirements
 
@@ -94,6 +99,10 @@ tubearchivist:
 ### Gateway API
 
 The `HTTPRoute` CRD, when `httpRoute.enabled` is set.
+
+### Monitoring
+
+The Prometheus Operator's CRDs, when `redis.serviceMonitor.enabled` is set, and a Grafana dashboard sidecar that reads ConfigMaps labelled `grafana_dashboard: "1"`, when `redis.dashboard.enabled` is set.
 
 ## Usage
 

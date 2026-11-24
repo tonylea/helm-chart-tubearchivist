@@ -55,6 +55,35 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+        - name: exporter
+          image: oliver006/redis_exporter:v1.99.0
+          env:
+            - name: REDIS_ADDR
+              value: redis://localhost:6379
+          ports:
+            - name: metrics
+              containerPort: 9121
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+          {{- with .Values.redis.exporter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -75,3 +104,6 @@ spec:
     - name: redis
       port: 6379
       targetPort: redis
+    - name: metrics
+      port: 9121
+      targetPort: metrics

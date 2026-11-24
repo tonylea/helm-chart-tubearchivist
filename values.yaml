@@ -24,6 +24,13 @@ redis:
   persistence:
     size: 128Mi
     storageClass: ""
+  exporter:
+    resources: {}
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+  dashboard:
+    enabled: false
 
 httpRoute:
   enabled: false

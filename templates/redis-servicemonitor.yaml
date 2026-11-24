@@ -1,0 +1,17 @@
+{{- if .Values.redis.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "tubearchivist.redisName" . }}
+  labels:
+    {{- include "tubearchivist.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  selector:
+    matchLabels:
+      {{- include "tubearchivist.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: redis
+  endpoints:
+    - port: metrics
+      interval: {{ .Values.redis.serviceMonitor.interval }}
+{{- end }}
