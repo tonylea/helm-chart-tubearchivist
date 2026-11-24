@@ -1,0 +1,13 @@
+{{- if .Values.redis.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tubearchivist.redisName" . }}-dashboard
+  labels:
+    {{- include "tubearchivist.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+    grafana_dashboard: "1"
+data:
+  redis.json: |
+    {{- .Files.Get "dashboards/redis.json" | nindent 4 }}
+{{- end }}

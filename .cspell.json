@@ -7,6 +7,7 @@
   "ignorePaths": [
     ".git/**",
     ".husky/**",
+    "dashboards/**",
     "node_modules/**",
     "CHANGELOG.md",
     "package-lock.json"
@@ -16,6 +17,7 @@
     "httproute",
     "kubeconform",
     "nindent",
+    "servicemonitor",
     "timezone",
     "trunc",
     "tubearchivist",
