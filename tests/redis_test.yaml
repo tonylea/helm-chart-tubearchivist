@@ -6,7 +6,7 @@ values:
 release:
   name: media
 tests:
-  - it: runs the pinned Redis image with requests and no limits
+  - it: runs the pinned Redis image with no resources by default
     documentSelector:
       path: kind
       value: Deployment
@@ -14,6 +14,19 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: redis:8.12.0
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+
+  - it: sets Redis's resources when given
+    documentSelector:
+      path: kind
+      value: Deployment
+    set:
+      redis.resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+    asserts:
       - equal:
           path: spec.template.spec.containers[0].resources
           value:

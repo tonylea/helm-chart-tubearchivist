@@ -57,7 +57,17 @@ tests:
             name: download
             mountPath: /cache/download
 
-  - it: sets requests and no limits
+  - it: sets no resources by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+
+  - it: sets resources when given
+    set:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 768Mi
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources

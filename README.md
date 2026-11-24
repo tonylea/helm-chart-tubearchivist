@@ -4,7 +4,7 @@
 
 Deploys [Tube Archivist](https://www.tubearchivist.com) from its official image, [`bbilly1/tubearchivist`](https://github.com/tubearchivist/tubearchivist), published by the project for amd64 and arm64 in one tag.
 
-The chart is opinionated: it fixes the image, the user, the requests and most of the settings, and leaves values only for what changes with where it's installed.
+The chart is opinionated: it fixes the image, the user and most of the settings, and leaves values only for what changes with where it's installed.
 Tube Archivist runs as one replica, replaced with `Recreate` rather than rolled, because it keeps a SQLite database in `/cache` and runs its own task scheduler, so two pods would clash.
 The chart also runs Tube Archivist's own Redis, which holds its task queue and is not shared with anything else.
 Its video index lives in an Elasticsearch that the chart does not install.
@@ -21,8 +21,10 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
 | `elasticsearch.user`                | `tubearchivist`                                                                                                                                                                                                         |
 | `elasticsearch.snapshotDir`         | none; required. Must equal Elasticsearch's `path.repo`.                                                                                                                                                                 |
 | `media.existingClaim`               | none; required. The claim mounted at `/youtube`.                                                                                                                                                                        |
+| `resources`                         | none. Requests of 50m CPU and 768Mi memory, with no limits, are a starting point until usage is measured.                                                                                                               |
 | `persistence.cache.storageClass`    | none; the cluster's default class. The chart creates a 5Gi claim.                                                                                                                                                       |
 | `persistence.download.storageClass` | none; the cluster's default class. The chart creates a 20Gi claim.                                                                                                                                                      |
+| `redis.resources`                   | none. Requests of 10m CPU and 64Mi memory, with no limits, are a starting point until usage is measured.                                                                                                                |
 | `redis.persistence.size`            | `128Mi`, the recommended size. Redis holds only task messages, task status and locks, so even a large backlog is a few MB.                                                                                              |
 | `redis.persistence.storageClass`    | none; the cluster's default class.                                                                                                                                                                                      |
 | `httpRoute.enabled`                 | `false`                                                                                                                                                                                                                 |
@@ -37,8 +39,6 @@ The project calls its arm64 builds "essentially untested"; if they misbehave, ru
   The pod needs internet access for it, as it does for YouTube.
 - **`REDIS_CON` points at the chart's own Redis.**
 - **Both pods run as non-root users**: Tube Archivist as `1000:1000`, Redis as `999:999`.
-- **Requests, and no limits**: Tube Archivist 50m CPU and 768Mi memory, Redis 10m CPU and 64Mi memory.
-  Limits are left out until they can be set from measured usage.
 
 ## Requirements
 

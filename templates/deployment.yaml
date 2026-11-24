@@ -91,10 +91,10 @@ spec:
                   value: localhost
             periodSeconds: 30
             timeoutSeconds: 5
+          {{- with .Values.resources }}
           resources:
-            requests:
-              cpu: 50m
-              memory: 768Mi
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
